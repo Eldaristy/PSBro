@@ -19,9 +19,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\core\cpu_common.cpp" />
+    <ClCompile Include="..\core\disassembler.cpp" />
+    <ClCompile Include="..\core\opcode.cpp" />
     <ClCompile Include="..\core\R3000_cpu.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\core\cpu_common.hpp" />
+    <ClInclude Include="..\core\disassembler.hpp" />
+    <ClInclude Include="..\core\opcode.hpp" />
     <ClInclude Include="..\core\R3000_cpu.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

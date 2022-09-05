@@ -2,9 +2,7 @@
 
 #define NULL_OP {NULL, (OpcodeType)NULL, (Operation)NULL}
 
-//using namespace CPU;
-using CPU::OpcodeType;
-using CPU::Operation;
+using namespace CPU;
 
 CPU::opcode opcodeTable[0x40] = {
 	{"SPECIAL", (OpcodeType)NULL, (Operation)NULL},
@@ -29,9 +27,10 @@ CPU::opcode opcodeTable[0x40] = {
 	{"COP1", OpcodeType::Cop, (Operation)NULL},
 	{"COP2", OpcodeType::Cop, (Operation)NULL},
 	{"COP3", OpcodeType::Cop, (Operation)NULL},
+	NULL_OP, NULL_OP, NULL_OP, NULL_OP,
 
 	NULL_OP, NULL_OP, NULL_OP, NULL_OP,
-	NULL_OP, NULL_OP, NULL_OP, NULL_OP, NULL_OP, NULL_OP, NULL_OP, NULL_OP,
+	NULL_OP, NULL_OP, NULL_OP, NULL_OP,
 
 	{"LB", OpcodeType::Load, Operation::Add},
 	{"LH", OpcodeType::Load, Operation::Add},
@@ -109,15 +108,16 @@ CPU::opcode functTable[0x40] = {
 	{"SLTU", OpcodeType::ALU, Operation::Slt},
 	NULL_OP, NULL_OP,
 
-	NULL_OP, NULL_OP, NULL_OP, NULL_OP, NULL_OP, NULL_OP, NULL_OP, NULL_OP
+	NULL_OP, NULL_OP, NULL_OP, NULL_OP,
+	NULL_OP, NULL_OP, NULL_OP, NULL_OP
 };
 
 void CPU::DetermineSignals()
 {
-	OpcodeType opcode_type = opcodeTable[((r_instruction*)&f_d.fetched_i)->opcode].opcode_type;
-	bool is_r_type = ((r_instruction*)&f_d.fetched_i)->opcode == 0;
+	OpcodeType opcode_type = opcodeTable[reinterpret_cast<r_instruction&>(f_d.fetched_i).opcode].opcode_type;
+	bool is_r_type = reinterpret_cast<r_instruction&>(f_d.fetched_i).opcode == 0;
 	if (is_r_type) { //if it's an R-type instruction 
-		opcode_type = functTable[((r_instruction*)&f_d.fetched_i)->funct].opcode_type;
+		opcode_type = functTable[reinterpret_cast<r_instruction&>(f_d.fetched_i).funct].opcode_type;
 	}
 	switch (opcode_type)
 	{
@@ -234,24 +234,24 @@ uint32 CPU::ExecALU(uint32 op1, uint32 op2, Operation operation)
 		result = op1 + op2;
 		break;
 
-	case Sub:
+	case Operation::Sub:
 		op2 *= -1;
 		result = op1 + op2;
 		break;
 
-	case And:
+	case Operation::And:
 		result = op1 & op2;
 		break;
 
-	case Or:
+	case Operation::Or:
 		result = op1 | op2;
 		break;
 
-	case Xor:
+	case Operation::Xor:
 		result = op1 ^ op2;
 		break;
 
-	case Slt:
+	case Operation::Slt:
 		result = op1 - op2 == 0;
 		break;
 	}
@@ -270,22 +270,22 @@ uint32 CPU::ExecShifter(uint32 op1, uint32 op2, Operation operation)
 
 	switch (operation)
 	{
-	case ShiftLeftLogic:
+	case Operation::ShiftLeftLogic:
 		op1 <<= op2;
 		break;
 
-	case ShiftRightLogic:
+	case Operation::ShiftRightLogic:
 		op1 >>= op2;
 		break;
 
-	case ShiftRightArith:
+	case Operation::ShiftRightArith:
 		for (uint32 i = 0; i < op2; i++) {
 			op1 >>= 1;
 			op1 |= (op1 & (1 << 30)) << 1;
 		}
 		break;
 
-	case RotRight:
+	case Operation::RotRight:
 		
 		for (uint32 i = 0; i < op2; i++) {
 			lsb = op1 & 0x00000001;
@@ -294,7 +294,7 @@ uint32 CPU::ExecShifter(uint32 op1, uint32 op2, Operation operation)
 		}
 		break;
 
-	case RotLeft:
+	case Operation::RotLeft:
 		
 		for (uint32 i = 0; i < op2; i++) {
 			msb = op1 & 0x80000000;
@@ -315,28 +315,28 @@ uint32 CPU::ExecMulDiv(uint32 op1, uint32 op2, Operation operation)
 	{
 	case Operation::Mul:
 		if (d_e.opSigned) {
-			result = (int64)op1 * (int64)op2;
+			result = static_cast<int64>(op1) * static_cast<int64>(op2);
 		}
 		else {
-			result = (uint64)op1 * (uint64)op2;
+			result = static_cast<uint64>(op1) * static_cast<uint64>(op2);
 		}
 
-		hi = (uint32)(result >> 32);
-		lo = (uint32)result;
+		hi = static_cast<uint32>(result >> 32);
+		lo = static_cast<uint32>(result);
 		break;
 
 	case Operation::Div:
 		if (d_e.opSigned) {
-			result = (int64)op1 / (int64)op2;
-			remainder = (int64)op1 - (result * (int64)op2);
+			result = static_cast<int64>(op1) / static_cast<int64>(op2);
+			remainder = static_cast<int64>(op1) - (result * static_cast<int64>(op2));
 		}
 		else {
-			result = (uint64)op1 / (uint64)op2;
-			remainder = (uint64)op1 - (result * (uint64)op2);
+			result = static_cast<uint64>(op1) / static_cast<uint64>(op2);
+			remainder = static_cast<uint64>(op1) - (result * static_cast<uint64>(op2));
 		}
 
-		hi = (uint32)result;
-		lo = (uint32)remainder;
+		hi = static_cast<uint32>(result);
+		lo = static_cast<uint32>(remainder);
 		break;
 
 	case Operation::ReadHi:
@@ -372,12 +372,12 @@ void CPU::Decode()
 {
 	DetermineSignals();
 	d_e.next_pc = f_d.next_pc;
-	d_e.opcode = ((i_instruction*)&f_d.fetched_i)->opcode;
-	d_e.reg_r_data1 = R[((r_instruction*)&f_d.fetched_i)->rs];
-	d_e.reg_r_data2 = R[((r_instruction*)&f_d.fetched_i)->rt];
-	d_e.rt = ((r_instruction*)&f_d.fetched_i)->rt;
-	d_e.rd = ((r_instruction*)&f_d.fetched_i)->rd;
-	d_e.imm = (uint32)((i_instruction*)&f_d.fetched_i)->imm; //need to check if its correct
+	d_e.opcode = reinterpret_cast<i_instruction&>(f_d.fetched_i).opcode;
+	d_e.reg_r_data1 = R[reinterpret_cast<r_instruction&>(f_d.fetched_i).rs];
+	d_e.reg_r_data2 = R[reinterpret_cast<r_instruction&>(f_d.fetched_i).rt];
+	d_e.rt = reinterpret_cast<r_instruction&>(f_d.fetched_i).rt;
+	d_e.rd = reinterpret_cast<r_instruction&>(f_d.fetched_i).rd;
+	d_e.imm = (uint32)reinterpret_cast<i_instruction&>(f_d.fetched_i).imm; //need to check if its correct
 }
 
 void CPU::Execute()
@@ -424,7 +424,7 @@ void CPU::Mem()
 			&& e_m.byteAccess[1] == 1
 			&& e_m.byteAccess[2] == 0
 			&& e_m.byteAccess[3] == 0) {
-			m_w.mem_r_data = (uint32)CPU::ReadHalf(e_m.result);
+			m_w.mem_r_data = static_cast<uint32>(CPU::ReadHalf(e_m.result));
 		}
 		else if (e_m.byteAccess[0] == 1
 			&& e_m.byteAccess[1] == 1
@@ -435,7 +435,7 @@ void CPU::Mem()
 		else {
 			for (size_t i = 0; i < 4; i++) {
 				if (e_m.byteAccess[i]) {
-					*(uint8*)(m_w.mem_r_data + i) = CPU::ReadByte(e_m.result + i);
+					*(reinterpret_cast<uint8*>(&m_w.mem_r_data) + i) = CPU::ReadByte(e_m.result + i);
 				}
 			}
 		}
@@ -456,7 +456,7 @@ void CPU::Mem()
 		else {
 			for (size_t i = 0; i < 4; i++) {
 				if (e_m.byteAccess[i]) {
-					CPU::WriteByte(e_m.result + i, *(uint8*)(e_m.mem_w_data + i));
+					CPU::WriteByte(e_m.result + i, *(reinterpret_cast<uint8*>(&e_m.mem_w_data) + i));
 				}
 			}
 		}
