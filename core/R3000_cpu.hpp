@@ -18,15 +18,6 @@ namespace CPU
 	void WriteHalf(uint32 addr, uint16 val);
 	uint32 ReadWord(uint32 addr);
 	void WriteWord(uint32 addr, uint32 val);
-	
-	typedef struct {
-		const char* alias;
-		OpcodeType opcode_type;
-		Operation operation;
-	} opcode;
-
-	opcode opcodeTable[0x40];
-	opcode functTable[0x40];
 
 	//inter-stage buffers:
 	//fetch-decode

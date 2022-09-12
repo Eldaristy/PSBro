@@ -1,6 +1,6 @@
 #include "cpu_common.hpp"
 
-std::array<std::string, ra + 1> regAliases {
+std::array<std::string, Regs::RA + 1> regAliases = {
 	"zero",
 	"at",
 	"v0",

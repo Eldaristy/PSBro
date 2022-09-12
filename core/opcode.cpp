@@ -21,8 +21,8 @@ Opcode Opcode::opcodeTable[0x40]
 
 	{"addi", {Arguments::rt, Arguments::imm16, Arguments::rs}, OpcodeType::ALU, Operation::Add},
 	{"addiu", {Arguments::rt, Arguments::imm16, Arguments::rs}, OpcodeType::ALU, Operation::Add},
-	{"Slti", {Arguments::rt, Arguments::imm16, Arguments::rs}, OpcodeType::ALU, Operation::Slt},
-	{"Sltiu", {Arguments::rt, Arguments::imm16, Arguments::rs}, OpcodeType::ALU, Operation::Slt},
+	{"slti", {Arguments::rt, Arguments::imm16, Arguments::rs}, OpcodeType::ALU, Operation::Slt},
+	{"sltiu", {Arguments::rt, Arguments::imm16, Arguments::rs}, OpcodeType::ALU, Operation::Slt},
 	{"andi", {Arguments::rt, Arguments::imm16, Arguments::rs}, OpcodeType::ALU, Operation::And},
 	{"ori", {Arguments::rt, Arguments::imm16, Arguments::rs}, OpcodeType::ALU, Operation::Or},
 	{"xori", {Arguments::rt, Arguments::imm16, Arguments::rs}, OpcodeType::ALU, Operation::Xor},
@@ -113,6 +113,9 @@ Opcode Opcode::functTable[0x40]
 	{"slt", {Arguments::rd, Arguments::rs, Arguments::rt}, OpcodeType::ALU, Operation::Slt},
 	{"sltu", {Arguments::rd, Arguments::rs, Arguments::rt}, OpcodeType::ALU, Operation::Slt},
 	{}, {},
+
+	{}, {}, {}, {},
+	{}, {}, {}, {},
 
 	{}, {}, {}, {},
 	{}, {}, {}, {}

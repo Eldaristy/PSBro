@@ -2,124 +2,21 @@
 
 #define NULL_OP {NULL, (OpcodeType)NULL, (Operation)NULL}
 
-using namespace CPU;
-
-CPU::opcode opcodeTable[0x40] = {
-	{"SPECIAL", (OpcodeType)NULL, (Operation)NULL},
-	{"BcondZ", OpcodeType::Branch, Operation::Sub},
-	{"J", OpcodeType::Jump, (Operation)NULL},
-	{"JAL", OpcodeType::Link, (Operation)NULL},
-	{"BEQ", OpcodeType::Branch, Operation::Sub},
-	{"BNE", OpcodeType::Branch, Operation::Sub},
-	{"BLEZ", OpcodeType::Branch, Operation::Sub},
-	{"BGTZ", OpcodeType::Branch, Operation::Sub},
-
-	{"ADDI", OpcodeType::ALU, Operation::Add}, 
-	{"ADDIU", OpcodeType::ALU, Operation::Add},
-	{"SLTI", OpcodeType::ALU, Operation::Slt},
-	{"SLTIU", OpcodeType::ALU, Operation::Slt},
-	{"ANDI", OpcodeType::ALU, Operation::And},
-	{"ORI", OpcodeType::ALU, Operation::Or},
-	{"XORI", OpcodeType::ALU, Operation::Xor},
-	{"LUI", OpcodeType::Shift, Operation::ShiftLeftLogic},
-
-	{"COP0", OpcodeType::Cop, (Operation)NULL},
-	{"COP1", OpcodeType::Cop, (Operation)NULL},
-	{"COP2", OpcodeType::Cop, (Operation)NULL},
-	{"COP3", OpcodeType::Cop, (Operation)NULL},
-	NULL_OP, NULL_OP, NULL_OP, NULL_OP,
-
-	NULL_OP, NULL_OP, NULL_OP, NULL_OP,
-	NULL_OP, NULL_OP, NULL_OP, NULL_OP,
-
-	{"LB", OpcodeType::Load, Operation::Add},
-	{"LH", OpcodeType::Load, Operation::Add},
-	{"LWL", OpcodeType::Load, Operation::Add},
-	{"LW", OpcodeType::Load, Operation::Add},
-	{"LBU", OpcodeType::Load, Operation::Add},
-	{"LHU", OpcodeType::Load, Operation::Add},
-	{"LWR", OpcodeType::Load, Operation::Add},
-	NULL_OP,
-
-	{"SB", OpcodeType::Store, Operation::Add},
-	{"SH", OpcodeType::Store, Operation::Add},
-	{"SWL", OpcodeType::Store, Operation::Add},
-	{"SW", OpcodeType::Store, Operation::Add},
-	NULL_OP,
-	NULL_OP,
-	{"SWR", OpcodeType::Store, Operation::Add},
-	NULL_OP,
-
-	{"LWC0", (OpcodeType)NULL, (Operation)NULL},
-	{"LWC1", (OpcodeType)NULL, (Operation)NULL},
-	{"LWC2", (OpcodeType)NULL, (Operation)NULL},
-	{"LWC3", (OpcodeType)NULL, (Operation)NULL},
-	NULL_OP, NULL_OP, NULL_OP, NULL_OP,
-
-	{"SWC0", (OpcodeType)NULL, (Operation)NULL},
-	{"SWC1", (OpcodeType)NULL, (Operation)NULL},
-	{"SWC2", (OpcodeType)NULL, (Operation)NULL},
-	{"SWC3", (OpcodeType)NULL, (Operation)NULL},
-	NULL_OP, NULL_OP, NULL_OP, NULL_OP,
-};
-
-CPU::opcode functTable[0x40] = {
-	{"SLL", OpcodeType::Shift, Operation::ShiftLeftLogic},
-	NULL_OP,
-	{"SRL", OpcodeType::Shift, Operation::ShiftRightLogic},
-	{"SRA", OpcodeType::Shift, Operation::ShiftRightArith},
-	{"SLLV", OpcodeType::Shift, Operation::ShiftLeftLogic},
-	NULL_OP,
-	{"SRLV", OpcodeType::Shift, Operation::ShiftRightLogic},
-	{"SRAV", OpcodeType::Shift, Operation::ShiftRightArith},
-
-	{"JR", OpcodeType::Jump, (Operation)NULL},
-	{"JALR", OpcodeType::Link, (Operation)NULL},
-	NULL_OP,
-	NULL_OP,
-	{"SYSCALL", (OpcodeType)NULL, (Operation)NULL},
-	{"BREAK", (OpcodeType)NULL, (Operation)NULL},
-	NULL_OP,
-	NULL_OP,
-
-	{"MFHI", OpcodeType::MulDiv, Operation::ReadHi},
-	{"MTHI", OpcodeType::MulDiv, Operation::ReadLo},
-	{"MFLO", OpcodeType::MulDiv, Operation::WriteHi},
-	{"MTLO", OpcodeType::MulDiv, Operation::WriteLo},
-	NULL_OP, NULL_OP, NULL_OP, NULL_OP,
-
-	{"MULT", OpcodeType::MulDiv, Operation::Mul},
-	{"MULTU", OpcodeType::MulDiv, Operation::Mul},
-	{"DIV", OpcodeType::MulDiv, Operation::Div},
-	{"DIVU", OpcodeType::MulDiv, Operation::Div},
-	NULL_OP, NULL_OP, NULL_OP, NULL_OP,
-
-	{"ADD", OpcodeType::ALU, Operation::Add},
-	{"ADDU", OpcodeType::ALU, Operation::Add},
-	{"SUB", OpcodeType::ALU, Operation::Sub},
-	{"SUBU", OpcodeType::ALU, Operation::Sub},
-	{"AND", OpcodeType::ALU, Operation::And},
-	{"OR", OpcodeType::ALU, Operation::Or},
-	{"XOR", OpcodeType::ALU, Operation::Xor},
-	{"NOR", OpcodeType::ALU, Operation::Nor},
-
-	NULL_OP, NULL_OP,
-	{"SLT", OpcodeType::ALU, Operation::Slt},
-	{"SLTU", OpcodeType::ALU, Operation::Slt},
-	NULL_OP, NULL_OP,
-
-	NULL_OP, NULL_OP, NULL_OP, NULL_OP,
-	NULL_OP, NULL_OP, NULL_OP, NULL_OP
-};
+uint8 CPU::ReadByte(uint32 addr) { return 0; }
+void CPU::WriteByte(uint32 addr, uint8 val) {}
+uint16 CPU::ReadHalf(uint32 addr) { return 0; }
+void CPU::WriteHalf(uint32 addr, uint16 val) {}
+uint32 CPU::ReadWord(uint32 addr) { return 0; }
+void CPU::WriteWord(uint32 addr, uint32 val) {}
 
 void CPU::DetermineSignals()
 {
-	OpcodeType opcode_type = opcodeTable[reinterpret_cast<r_instruction&>(f_d.fetched_i).opcode].opcode_type;
-	bool is_r_type = reinterpret_cast<r_instruction&>(f_d.fetched_i).opcode == 0;
+	OpcodeType opcodeType = Opcode::opcodeTable[reinterpret_cast<RInstruction&>(f_d.fetched_i).opcode].opcodeType;
+	bool is_r_type = reinterpret_cast<RInstruction&>(f_d.fetched_i).opcode == 0;
 	if (is_r_type) { //if it's an R-type instruction 
-		opcode_type = functTable[reinterpret_cast<r_instruction&>(f_d.fetched_i).funct].opcode_type;
+		opcodeType = Opcode::functTable[reinterpret_cast<RInstruction&>(f_d.fetched_i).funct].opcodeType;
 	}
-	switch (opcode_type)
+	switch (opcodeType)
 	{
 	case OpcodeType::Load:
 		d_e.jump = 0;
@@ -372,12 +269,12 @@ void CPU::Decode()
 {
 	DetermineSignals();
 	d_e.next_pc = f_d.next_pc;
-	d_e.opcode = reinterpret_cast<i_instruction&>(f_d.fetched_i).opcode;
-	d_e.reg_r_data1 = R[reinterpret_cast<r_instruction&>(f_d.fetched_i).rs];
-	d_e.reg_r_data2 = R[reinterpret_cast<r_instruction&>(f_d.fetched_i).rt];
-	d_e.rt = reinterpret_cast<r_instruction&>(f_d.fetched_i).rt;
-	d_e.rd = reinterpret_cast<r_instruction&>(f_d.fetched_i).rd;
-	d_e.imm = (uint32)reinterpret_cast<i_instruction&>(f_d.fetched_i).imm; //need to check if its correct
+	d_e.opcode = reinterpret_cast<IInstruction&>(f_d.fetched_i).opcode;
+	d_e.reg_r_data1 = R[reinterpret_cast<RInstruction&>(f_d.fetched_i).rs];
+	d_e.reg_r_data2 = R[reinterpret_cast<RInstruction&>(f_d.fetched_i).rt];
+	d_e.rt = reinterpret_cast<RInstruction&>(f_d.fetched_i).rt;
+	d_e.rd = reinterpret_cast<RInstruction&>(f_d.fetched_i).rd;
+	d_e.imm = (uint32)reinterpret_cast<IInstruction&>(f_d.fetched_i).imm; //need to check if its correct
 }
 
 void CPU::Execute()
@@ -392,7 +289,7 @@ void CPU::Execute()
 	e_m.branch_result = d_e.next_pc + (d_e.imm << 2);
 	uint32 op1 = d_e.reg_r_data1;
 	uint32 op2 = 0;
-	Operation operation = d_e.opcode ? opcodeTable[d_e.opcode].operation : functTable[d_e.opcode].operation;
+	Operation operation = d_e.opcode ? Opcode::opcodeTable[d_e.opcode].operation : Opcode::functTable[d_e.opcode].operation;
 	e_m.mem_w_data = d_e.reg_r_data2;
 	
 	if (d_e.ALU) {

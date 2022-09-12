@@ -58,11 +58,9 @@ enum Arguments
 
 class Opcode
 {
-private:
+public:
 	const std::string alias;
 	const std::array<Arguments, 3> args;
-
-public:
 	const OpcodeType opcodeType;
 	const Operation operation;
 

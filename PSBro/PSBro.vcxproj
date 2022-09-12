@@ -23,12 +23,15 @@
     <ClCompile Include="..\core\disassembler.cpp" />
     <ClCompile Include="..\core\opcode.cpp" />
     <ClCompile Include="..\core\R3000_cpu.cpp" />
+    <ClCompile Include="..\main.cpp" />
+    <ClCompile Include="..\tests\disasm_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\core\cpu_common.hpp" />
     <ClInclude Include="..\core\disassembler.hpp" />
     <ClInclude Include="..\core\opcode.hpp" />
     <ClInclude Include="..\core\R3000_cpu.hpp" />
+    <ClInclude Include="..\tests\tests.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
