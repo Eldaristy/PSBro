@@ -16,7 +16,13 @@ typedef uint32_t uint32;
 typedef int64_t int64;
 typedef uint64_t uint64;
 
-enum Regs : uint8 
+enum class CPUInitMode
+{
+	NORMAL,
+	TEST
+};
+
+enum Regs : uint32 
 {
 	ZERO,
 	AT,
@@ -54,7 +60,7 @@ enum Regs : uint8
 
 extern std::array<std::string, Regs::RA + 1> regAliases;
 
-enum Opcodes : uint8
+enum Opcodes : uint32
 {
 	R_TYPE = 0,
 	BCONDZ = 1,
@@ -105,7 +111,7 @@ enum Opcodes : uint8
 	/* 60 - 63 */
 };
 
-enum Functs : uint8
+enum Functs : uint32
 {
 	SLL = 0,
 	/* 1 */
@@ -150,60 +156,43 @@ enum Functs : uint8
 	/* 47-63 */
 };
 
-union Instruction
+struct Instruction
 {
-	uint32 all;
-
-	struct 
+	union
 	{
-		Functs funct : 6;
-		uint8 shamt : 5;
-		Regs rd : 5;
-		Regs rt : 5;
-		Regs rs : 5;
-		Opcodes opcode : 6;
-	} rType;
+		uint32 all;
 
-	struct
-	{
-		uint32 imm : 16;
-		Regs rt : 5;
-		Regs rs : 5;
-		Opcodes opcode : 6;
-	} iType;
+		struct
+		{
+			Functs funct : 6;
+			uint32 shamt : 5;
+			Regs rd : 5;
+			Regs rt : 5;
+			Regs rs : 5;
+			Opcodes opcode : 6;
+		} rType;
 
-	struct
-	{
-		uint32 addr : 26;
-		Opcodes opcode : 6;
-	} jType;
-	
+		struct
+		{
+			uint32 imm : 16;
+			Regs rt : 5;
+			Regs rs : 5;
+			Opcodes opcode : 6;
+		} iType;
 
-};
+		struct
+		{
+			uint32 addr : 26;
+			Opcodes opcode : 6;
+		} jType;
 
-struct RInstruction
-{
-	Functs funct : 6;
-	uint8 shamt : 5;
-	Regs rd : 5;
-	Regs rt : 5;
-	Regs rs : 5;
-	Opcodes opcode : 6;
-};
-
-struct IInstruction
-{
-	uint32 imm : 16;
-	Regs rt : 5;
-	Regs rs : 5;
-	Opcodes opcode : 6;
-};
-
-struct JInstruction
-{
-	uint32 addr : 26;
-	Opcodes opcode : 6;
-
+		
+	};
+	Instruction();
+	Instruction(uint32 all);
+	Instruction(Functs funct, uint8 shamt, Regs rd, Regs rt, Regs rs); //rType
+	Instruction(uint16 imm, Regs rt, Regs rs, Opcodes opcode); //iType
+	Instruction(uint32 addr, Opcodes opcode); //jType
 };
 
 #endif

@@ -2,19 +2,52 @@
 
 #define NULL_OP {NULL, (OpcodeType)NULL, (Operation)NULL}
 
-uint8 CPU::ReadByte(uint32 addr) { return 0; }
+uint32 CPU::R[32] = { 0 };
+uint32 CPU::pc = 0;
+uint32 CPU::lo = 0;
+uint32 CPU::hi = 0;
+CPU::F_D CPU::f_d{ 0 };
+CPU::D_E CPU::d_e{ 0 };
+CPU::E_M CPU::e_m{ 0 };
+CPU::M_W CPU::m_w{ 0 };
+
+void CPU::Init(CPUInitMode mode)
+{
+	switch (mode) {
+	case CPUInitMode::NORMAL:
+		//...
+		break;
+		
+	case CPUInitMode::TEST:
+		break;
+	}
+}
+extern std::vector<Instruction> mem;
+uint8 CPU::ReadByte(uint32 addr) 
+{ 
+	//extern std::vector<Instruction> mem;
+	return mem[addr / sizeof(uint32)].all;
+}
 void CPU::WriteByte(uint32 addr, uint8 val) {}
-uint16 CPU::ReadHalf(uint32 addr) { return 0; }
+uint16 CPU::ReadHalf(uint32 addr)
+{
+	//extern std::vector<Instruction> mem;
+	return mem[addr / sizeof(uint32)].all;
+}
 void CPU::WriteHalf(uint32 addr, uint16 val) {}
-uint32 CPU::ReadWord(uint32 addr) { return 0; }
+uint32 CPU::ReadWord(uint32 addr)
+{ 
+	//extern std::vector<Instruction> mem;
+	return mem[addr / sizeof(uint32)].all;
+}
 void CPU::WriteWord(uint32 addr, uint32 val) {}
 
 void CPU::DetermineSignals()
 {
-	OpcodeType opcodeType = Opcode::opcodeTable[reinterpret_cast<RInstruction&>(f_d.fetched_i).opcode].opcodeType;
-	bool is_r_type = reinterpret_cast<RInstruction&>(f_d.fetched_i).opcode == 0;
+	OpcodeType opcodeType = Opcode::opcodeTable[f_d.fetched_i.rType.opcode].opcodeType;
+	bool is_r_type = f_d.fetched_i.rType.opcode == 0;
 	if (is_r_type) { //if it's an R-type instruction 
-		opcodeType = Opcode::functTable[reinterpret_cast<RInstruction&>(f_d.fetched_i).funct].opcodeType;
+		opcodeType = Opcode::functTable[f_d.fetched_i.rType.funct].opcodeType;
 	}
 	switch (opcodeType)
 	{
@@ -257,24 +290,34 @@ uint32 CPU::ExecMulDiv(uint32 op1, uint32 op2, Operation operation)
 }
 
 void CPU::Fetch()
-{
+{	
+	f_d.fetched_i.all = CPU::ReadWord(pc);
+
 	f_d.next_pc = pc + 4;
-	if (!(e_m.branch && !e_m.result)) { //aka "PCsrc" is off
+	bool pcSrc = e_m.branch && !e_m.result;
+	if (pcSrc) { //aka "PCsrc" is off
+		pc = e_m.branch_result;
+	} 
+	else if (d_e.jump) {
+		pc = d_e.addr;
+	}
+	else {
 		pc += 4;
 	}
-	f_d.fetched_i = CPU::ReadWord(pc);
 }
 
 void CPU::Decode()
 {
 	DetermineSignals();
 	d_e.next_pc = f_d.next_pc;
-	d_e.opcode = reinterpret_cast<IInstruction&>(f_d.fetched_i).opcode;
-	d_e.reg_r_data1 = R[reinterpret_cast<RInstruction&>(f_d.fetched_i).rs];
-	d_e.reg_r_data2 = R[reinterpret_cast<RInstruction&>(f_d.fetched_i).rt];
-	d_e.rt = reinterpret_cast<RInstruction&>(f_d.fetched_i).rt;
-	d_e.rd = reinterpret_cast<RInstruction&>(f_d.fetched_i).rd;
-	d_e.imm = (uint32)reinterpret_cast<IInstruction&>(f_d.fetched_i).imm; //need to check if its correct
+	d_e.opcode = f_d.fetched_i.iType.opcode;
+	d_e.funct = f_d.fetched_i.rType.funct;
+	d_e.reg_r_data1 = R[f_d.fetched_i.rType.rs];
+	d_e.reg_r_data2 = R[f_d.fetched_i.rType.rt];
+	d_e.rt = f_d.fetched_i.rType.rt;
+	d_e.rd = f_d.fetched_i.rType.rd;
+	d_e.imm = (uint32)f_d.fetched_i.iType.imm; //need to check if its correct
+	d_e.addr = f_d.fetched_i.iType.opcode == Opcodes::R_TYPE ? d_e.reg_r_data1 : (uint32)f_d.fetched_i.jType.addr;
 }
 
 void CPU::Execute()
@@ -289,7 +332,7 @@ void CPU::Execute()
 	e_m.branch_result = d_e.next_pc + (d_e.imm << 2);
 	uint32 op1 = d_e.reg_r_data1;
 	uint32 op2 = 0;
-	Operation operation = d_e.opcode ? Opcode::opcodeTable[d_e.opcode].operation : Opcode::functTable[d_e.opcode].operation;
+	Operation operation = d_e.opcode ? Opcode::opcodeTable[d_e.opcode].operation : Opcode::functTable[d_e.funct].operation;
 	e_m.mem_w_data = d_e.reg_r_data2;
 	
 	if (d_e.ALU) {
@@ -366,14 +409,14 @@ void CPU::WriteBack()
 {
 	if (m_w.regWrite) {
 		if (m_w.reg_w_reg != 0) { //NOT the zero register
-			R[m_w.reg_w_reg] = m_w.memtoReg ? m_w.reg_w_data : m_w.mem_r_data;
+			R[m_w.reg_w_reg] = m_w.memtoReg ? m_w.mem_r_data : m_w.reg_w_data;
 		}
 	}
 }
 
 void CPU::Bubble()
 {
-	f_d.fetched_i = 0;
+	f_d.fetched_i.all = 0;
 	f_d.next_pc = 0;
 }
 

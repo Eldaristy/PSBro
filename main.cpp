@@ -2,7 +2,7 @@
 
 int main()
 {
-	disasm_test_main();
+	cpu_instructions_test_main();
 	
 	return 0;
 }

@@ -1,5 +1,22 @@
 #include "cpu_common.hpp"
 
+Instruction::Instruction() 
+	: all{0} {}
+
+Instruction::Instruction(uint32 all)
+	: all{all} {}
+
+Instruction::Instruction(Functs funct, uint8 shamt, Regs rd, Regs rt, Regs rs) //rType
+	: rType{ funct, shamt, rd, rt, rs} {
+	true;
+}
+
+Instruction::Instruction(uint16 imm, Regs rt, Regs rs, Opcodes opcode) //iType
+	: iType{imm, rt, rs, opcode} {}
+
+Instruction::Instruction(uint32 addr, Opcodes opcode) //jType
+	: jType{addr, opcode} {}
+
 std::array<std::string, Regs::RA + 1> regAliases = {
 	"zero",
 	"at",
@@ -34,3 +51,4 @@ std::array<std::string, Regs::RA + 1> regAliases = {
 	"fp",
 	"ra",
 };
+

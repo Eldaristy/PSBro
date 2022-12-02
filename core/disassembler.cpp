@@ -13,7 +13,7 @@ namespace formats
 
 //using disasm::imm26;
 
-std::string disasm::ParseInstruction(uint32 i)
+std::string disasm::ParseInstruction(Instruction i)
 {
 	std::string result = "";
 	std::array<Arguments, 3> args{NONE};
@@ -27,22 +27,22 @@ std::string disasm::ParseInstruction(uint32 i)
 	uint32 imm25 = 0;
 	uint32 imm26 = 0;
 
-	rs = regAliases[reinterpret_cast<RInstruction&>(i).rs];
-	rt = regAliases[reinterpret_cast<RInstruction&>(i).rt];
-	rd = regAliases[reinterpret_cast<RInstruction&>(i).rd];
-	imm5 = reinterpret_cast<RInstruction&>(i).shamt;
-	imm16 = reinterpret_cast<IInstruction&>(i).imm;
-	imm20 = reinterpret_cast<JInstruction&>(i).addr >> 6;
+	rs = regAliases[i.rType.rs];
+	rt = regAliases[i.rType.rt];
+	rd = regAliases[i.rType.rd];
+	imm5 = i.rType.shamt;
+	imm16 = i.iType.imm;
+	imm20 = i.jType.addr >> 6;
 	//imm25?
-	imm26 = reinterpret_cast<JInstruction&>(i).addr;
+	imm26 = i.jType.addr;
 
-	if (reinterpret_cast<IInstruction&>(i).opcode == 0) { //if it's an r-type opcode
-		result = Opcode::functTable[reinterpret_cast<RInstruction&>(i).funct].alias;
-		args = Opcode::functTable[reinterpret_cast<RInstruction&>(i).funct].args;
+	if (i.iType.opcode == Opcodes::R_TYPE) { //if it's an r-type opcode
+		result = Opcode::functTable[i.rType.funct].alias;
+		args = Opcode::functTable[i.rType.funct].args;
 	}
-	else if (Opcode::opcodeTable[reinterpret_cast<IInstruction&>(i).opcode].alias != "") {
-		result = Opcode::opcodeTable[reinterpret_cast<IInstruction&>(i).opcode].alias;
-		args = Opcode::opcodeTable[reinterpret_cast<IInstruction&>(i).opcode].args;
+	else if (Opcode::opcodeTable[i.iType.opcode].alias != "") {
+		result = Opcode::opcodeTable[i.iType.opcode].alias;
+		args = Opcode::opcodeTable[i.iType.opcode].args;
 	}
 
 	for (uint8 i = 0; i < 3; i++) {
@@ -88,11 +88,23 @@ std::string disasm::ParseInstruction(uint32 i)
 
 std::string disasm::BuildFormat(std::string opcode, std::array<std::string, 3> argsAliases)
 {
-	char buf[50] = { 0 };
-	std::string format = "";
+	char buf[50] = { 0 }; //I like C ;)
 	std::sprintf(buf, formats::I_R_R_R,
 		opcode.c_str(), argsAliases[0].c_str(), argsAliases[1].c_str(), argsAliases[2].c_str());
-	format = buf;
 
-	return format;
+	return buf; //implicitly casts char* to std::string
+}
+
+std::string disasm::GetRegVal(Regs reg)
+{
+	char buf[10] = { 0 };
+	std::string format = "";
+	std::sprintf(buf, "%s: %d", regAliases[reg].c_str(), CPU::R[reg]);
+
+	return buf;
+}
+
+void disasm::SetRegVal(Regs reg, uint32 val)
+{
+	CPU::R[static_cast<uint32>(reg)] = val;
 }

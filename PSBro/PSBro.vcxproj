@@ -24,6 +24,7 @@
     <ClCompile Include="..\core\opcode.cpp" />
     <ClCompile Include="..\core\R3000_cpu.cpp" />
     <ClCompile Include="..\main.cpp" />
+    <ClCompile Include="..\tests\cpu_instructions_test.cpp" />
     <ClCompile Include="..\tests\disasm_test.cpp" />
   </ItemGroup>
   <ItemGroup>
